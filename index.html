@@ -234,8 +234,8 @@
             font-family: Arial, Helvetica, sans-serif;
             color: #000;
             flex-shrink: 0; 
-            /* Memberikan dasar background putih bersih agar PDF tidak gelap */
             background-color: #ffffff;
+            margin: 0 auto; /* Pastikan selalu di tengah */
         }
 
         .header-container {
@@ -311,7 +311,7 @@
         .col-jumlah { width: 20%; }
 
         .row-total td {
-            background-color: #FFFF00 !important; /* Memastikan warna terekam di PDF */
+            background-color: #FFFF00 !important; 
             font-weight: bold;
         }
 
@@ -396,9 +396,6 @@
             }
             .mobile-hint {
                 display: block; 
-            }
-            .kertas-a4 {
-                margin: 0 auto;
             }
         }
     </style>
@@ -689,7 +686,7 @@ Sambal</textarea>
 
         updatePreview();
 
-        // Fungsi Cetak Diperbaiki Untuk Mobile
+        // --- FUNGSI CETAK DIPERBAIKI (ANTI MENCONG & ANTI 2 HALAMAN) ---
         function cetakPDF() {
             const btn = document.getElementById('btn-cetak');
             const originalText = btn.innerText;
@@ -698,13 +695,20 @@ Sambal</textarea>
             btn.innerText = "Memproses...";
             btn.disabled = true;
 
-            // Memaksa scroll area preview ke atas/kiri agar tidak terpotong saat diprint
+            const element = document.getElementById('dokumen-kwitansi');
+            
+            // Simpan box-shadow asli
+            const originalBoxShadow = element.style.boxShadow;
+            
+            // HILANGKAN BAYANGAN KERTAS SAAT PROSES PDF 
+            // (Ini yang membuat kertas jadi 2 halaman karena menembus batas bawah A4)
+            element.style.boxShadow = 'none';
+
+            // Memaksa scroll area ke titik 0,0 agar canvas tidak terpotong
             window.scrollTo(0,0);
             document.getElementById('preview-area').scrollTo(0,0);
 
-            const element = document.getElementById('dokumen-kwitansi');
             let namaFile = document.getElementById('in-nama-file').value.trim();
-            
             if(namaFile === "") {
                 namaFile = "Kwitansi_Pesanan";
             }
@@ -712,23 +716,28 @@ Sambal</textarea>
             const opt = {
                 margin:       0,
                 filename:     `${namaFile}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
+                image:        { type: 'jpeg', quality: 1 },
                 html2canvas:  { 
                     scale: 2, 
                     useCORS: true, 
-                    letterRendering: true,
-                    windowWidth: 1024 // Paksa render selebar desktop (mencegah hancur di HP)
+                    scrollX: 0,
+                    scrollY: 0
+                    // windowWidth DIHAPUS agar sistem membaca ukuran asli kertas (210mm)
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
-                // Kembalikan tombol setelah selesai
+                // Kembalikan bayangan dan tombol setelah selesai diunduh
+                element.style.boxShadow = originalBoxShadow;
                 btn.innerText = originalText;
                 btn.disabled = false;
             }).catch(err => {
                 console.error("Gagal cetak PDF:", err);
                 alert("Terjadi kesalahan saat memproses PDF.");
+                
+                // Kembalikan fungsi meski error
+                element.style.boxShadow = originalBoxShadow;
                 btn.innerText = originalText;
                 btn.disabled = false;
             });
