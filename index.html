@@ -235,7 +235,7 @@
             color: #000;
             flex-shrink: 0; 
             background-color: #ffffff;
-            margin: 0 auto; /* Pastikan selalu di tengah */
+            margin: 0 auto; 
         }
 
         .header-container {
@@ -686,33 +686,47 @@ Sambal</textarea>
 
         updatePreview();
 
-        // --- FUNGSI CETAK DIPERBAIKI (ANTI MENCONG & ANTI 2 HALAMAN) ---
+        // --- FUNGSI CETAK DIPERBAIKI (ANTI MENCONG & PASTI 1 HALAMAN DI MOBILE) ---
         function cetakPDF() {
             const btn = document.getElementById('btn-cetak');
             const originalText = btn.innerText;
             
-            // Animasi Loading Tombol
             btn.innerText = "Memproses...";
             btn.disabled = true;
 
             const element = document.getElementById('dokumen-kwitansi');
             
-            // Simpan box-shadow asli
-            const originalBoxShadow = element.style.boxShadow;
-            
-            // HILANGKAN BAYANGAN KERTAS SAAT PROSES PDF 
-            // (Ini yang membuat kertas jadi 2 halaman karena menembus batas bawah A4)
-            element.style.boxShadow = 'none';
+            // Simpan format asli untuk dikembalikan setelah PDF terunduh
+            const originalCssText = element.style.cssText;
 
-            // Memaksa scroll area ke titik 0,0 agar canvas tidak terpotong
+            // 1. Kunci posisi kertas agar mutlak di koordinat 0,0 (Mencegah terpotong layar mobile)
+            // 2. Kunci dimensi tepat ke 210mm x 297mm (Mencegah meluber ke halaman 2)
+            // 3. Matikan bayangan (box-shadow)
+            element.style.cssText = `
+                margin: 0 !important;
+                box-shadow: none !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                transform: none !important;
+                background-color: white !important;
+                z-index: 9999 !important;
+            `;
+
+            // Reset scroll halaman agar canvas mulus membaca ujung atas kertas
             window.scrollTo(0,0);
-            document.getElementById('preview-area').scrollTo(0,0);
-
+            
             let namaFile = document.getElementById('in-nama-file').value.trim();
             if(namaFile === "") {
                 namaFile = "Kwitansi_Pesanan";
             }
             
+            // Mengambil dimensi element aslinya yang sudah dikunci secara statis
+            const elementWidth = element.offsetWidth;
+            const elementHeight = element.offsetHeight;
+
             const opt = {
                 margin:       0,
                 filename:     `${namaFile}.pdf`,
@@ -721,26 +735,29 @@ Sambal</textarea>
                     scale: 2, 
                     useCORS: true, 
                     scrollX: 0,
-                    scrollY: 0
-                    // windowWidth DIHAPUS agar sistem membaca ukuran asli kertas (210mm)
+                    scrollY: 0,
+                    width: elementWidth,   // Kunci pengambilan selebar elemen A4 murni
+                    height: elementHeight  // Kunci pengambilan setinggi elemen A4 murni
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Kembalikan bayangan dan tombol setelah selesai diunduh
-                element.style.boxShadow = originalBoxShadow;
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }).catch(err => {
-                console.error("Gagal cetak PDF:", err);
-                alert("Terjadi kesalahan saat memproses PDF.");
-                
-                // Kembalikan fungsi meski error
-                element.style.boxShadow = originalBoxShadow;
-                btn.innerText = originalText;
-                btn.disabled = false;
-            });
+            // Beri jeda 300ms agar browser hp sempat melakukan "re-render" styling baru sebelum capture gambar
+            setTimeout(() => {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    // Kembalikan tampilan seperti semula
+                    element.style.cssText = originalCssText;
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }).catch(err => {
+                    console.error("Gagal cetak PDF:", err);
+                    alert("Terjadi kesalahan saat memproses PDF.");
+                    
+                    element.style.cssText = originalCssText;
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                });
+            }, 300);
         }
     </script>
 </body>
