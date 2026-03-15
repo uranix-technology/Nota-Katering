@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cetak Kwitansi Dapoer Mama Sella</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* Reset Dasar */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #52525b; 
+            margin: 0;
+            padding-bottom: 80px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ========================================= */
+        /* TOMBOL AKSI (BAWAH LAYAR)                 */
+        /* ========================================= */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #1f2937;
+            padding: 15px 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            z-index: 50;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
+        }
+
+        .action-btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+            max-width: 250px;
+            color: white;
+            transition: background 0.3s, transform 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:active {
+            transform: scale(0.96);
+        }
+
+        .action-btn:disabled {
+            background-color: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-edit {
+            background-color: #3b82f6;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-edit:hover:not(:disabled) { background-color: #2563eb; }
+
+        .btn-unduh {
+            background-color: #16a34a;
+            box-shadow: 0 4px 6px rgba(22, 163, 74, 0.3);
+        }
+
+        .btn-unduh:hover:not(:disabled) { background-color: #15803d; }
+
+        /* ========================================= */
+        /* MODAL POP-UP FORM                         */
+        /* ========================================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 15px;
+            backdrop-filter: blur(3px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .form-container {
+            position: relative; 
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh; 
+            background: #ffffff;
+            padding: 25px 20px;
+            overflow-y: auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .form-container {
+            transform: translateY(0);
+        }
+
+        .btn-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            line-height: 1;
+            color: #6b7280;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .btn-close:hover {
+            color: #ef4444; 
+        }
+
+        .form-container h2 {
+            font-size: 1.3rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #111827;
+            text-align: center;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+            padding-right: 30px; 
+            padding-left: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 16px; 
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        button.btn-selesai {
+            width: 100%;
+            padding: 14px;
+            background-color: #4b5563; 
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 15px;
+        }
+
+        button.btn-selesai:hover {
+            background-color: #374151;
+        }
+
+        /* ========================================= */
+        /* PANEL KANAN: PREVIEW A4                   */
+        /* ========================================= */
+        .preview-wrapper {
+            width: 100%;
+            padding: 20px;
+            overflow-x: auto; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .mobile-hint {
+            display: none;
+            background-color: #1f2937;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .kertas-a4 {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            padding: 15mm 20mm;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            font-family: Arial, Helvetica, sans-serif;
+            color: #000;
+            flex-shrink: 0; 
+            /* Memberikan dasar background putih bersih agar PDF tidak gelap */
+            background-color: #ffffff;
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .header-logo {
+            width: 100px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .header-logo img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .header-address {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.3;
+        }
+
+        .header-info {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .header-info table {
+            border-collapse: collapse;
+        }
+        
+        .header-info td {
+            padding: 0;
+            vertical-align: top;
+        }
+        
+        .header-info td.label {
+            width: 85px;
+        }
+
+        .black-line {
+            height: 10px; 
+            background-color: black;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .tabel-item {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .tabel-item th, .tabel-item td {
+            border: 1px solid black;
+            padding: 5px;
+            vertical-align: top;
+        }
+
+        .tabel-item th {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .col-no { width: 5%; }
+        .col-jenis { width: 45%; }
+        .col-banyak { width: 10%; }
+        .col-harga { width: 20%; }
+        .col-jumlah { width: 20%; }
+
+        .row-total td {
+            background-color: #FFFF00 !important; /* Memastikan warna terekam di PDF */
+            font-weight: bold;
+        }
+
+        .menu-list {
+            margin-top: 2px;
+        }
+        
+        .menu-list div {
+            margin-bottom: 2px;
+        }
+
+        .total-box-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            margin-bottom: 40px;
+        }
+
+        .total-box-label {
+            font-size: 13px;
+            margin-right: 15px;
+        }
+
+        .total-box-skew {
+            border: 1px solid black;
+            padding: 5px 25px;
+            transform: skew(-15deg);
+            display: inline-block;
+        }
+
+        .total-box-content {
+            transform: skew(15deg);
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .footer-container {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 40px;
+        }
+
+        .tanda-tangan {
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .tanda-tangan p {
+            margin: 3px 0;
+        }
+
+        .area-ttd {
+            position: relative;
+            height: 90px;
+            width: 220px;
+            margin: 5px auto;
+        }
+
+        .watermark-ttd {
+            position: absolute;
+            top: 50%;
+            left: 35%;
+            transform: translate(-50%, -50%);
+            width: 85px;
+            z-index: 1;
+        }
+
+        .img-ttd {
+            position: absolute;
+            top: 55%;
+            left: 65%;
+            transform: translate(-50%, -50%);
+            width: 140px;
+            z-index: 2;
+            mix-blend-mode: multiply;
+        }
+
+        @media screen and (max-width: 900px) {
+            .preview-wrapper {
+                align-items: flex-start; 
+            }
+            .mobile-hint {
+                display: block; 
+            }
+            .kertas-a4 {
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="action-bar">
+        <button class="action-btn btn-edit" onclick="openModal()">Edit Data</button>
+        <button class="action-btn btn-unduh" onclick="cetakPDF()" id="btn-cetak">Unduh PDF</button>
+    </div>
+
+    <div class="modal-overlay" id="modalForm">
+        <div class="form-container">
+            <button class="btn-close" onclick="closeModal()">&times;</button>
+            
+            <h2>Data Kwitansi</h2>
+            
+            <div class="form-group">
+                <label>Pemesanan</label>
+                <input type="text" id="in-pemesanan" value="Yayasan Al Kahfi">
+            </div>
+            <div class="form-group">
+                <label>No Order</label>
+                <input type="text" id="in-no-order" value="117">
+            </div>
+            <div class="form-group">
+                <label>Pilih Tanggal</label>
+                <input type="date" id="in-tanggal" value="2026-03-15">
+            </div>
+            <div class="form-group">
+                <label>No. Rekening</label>
+                <input type="text" id="in-no-rek" value="4731702980">
+            </div>
+            
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+            
+            <div class="form-group">
+                <label>Nama Paket</label>
+                <input type="text" id="in-paket" value="Paket catering (Lauk + sayur)">
+            </div>
+            <div class="form-group">
+                <label>Isi Menu (Pisahkan baris dengan "Enter")</label>
+                <textarea id="in-menu" rows="5">Nasi putih
+Ayam Geprek
+Lalapan
+Sambal</textarea>
+            </div>
+            
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+
+            <div class="form-group" style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label>Banyak</label>
+                    <input type="number" id="in-banyak" value="30" min="1">
+                </div>
+                <div style="flex: 1;">
+                    <label>Harga Satuan (Rp)</label>
+                    <input type="number" id="in-harga" value="15000" min="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nama Penerima</label>
+                <input type="text" id="in-penerima" value="(Shella Fitria)">
+            </div>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+
+            <div class="form-group">
+                <label>Nama File PDF (Otomatis & Bisa Diedit)</label>
+                <input type="text" id="in-nama-file">
+            </div>
+
+            <button class="btn-selesai" onclick="closeModal()">Selesai</button>
+        </div>
+    </div>
+
+    <div class="preview-wrapper" id="preview-area">
+        
+        <div class="mobile-hint">
+            👉 Geser kertas ke kanan / kiri untuk melihat full
+        </div>
+
+        <div class="kertas-a4" id="dokumen-kwitansi">
+            
+            <div class="header-container">
+                <div class="header-logo">
+                    <img src="Picture1.png" alt="Logo Utama">
+                </div>
+                
+                <div class="header-address">
+                    Jl. Oscar 3, Bambu Apus,<br>
+                    Kec. Pamulang<br>
+                    Telp/hp: 0899-8337-276<br>
+                    No. Rekening <span id="out-no-rek">4731702980</span>
+                </div>
+
+                <div class="header-info">
+                    <table>
+                        <tr>
+                            <td class="label">Pemesanan</td>
+                            <td>: <span id="out-pemesanan">Yayasan Al Kahfi</span></td>
+                        </tr>
+                        <tr>
+                            <td class="label">No Order</td>
+                            <td>: <span id="out-no-order">117</span></td>
+                        </tr>
+                        <tr>
+                            <td class="label">Tanggal</td>
+                            <td>: <span id="out-tanggal-header">15 Maret 2026</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="black-line"></div>
+
+            <table class="tabel-item">
+                <thead>
+                    <tr>
+                        <th class="col-no">No</th>
+                        <th class="col-jenis">Jenis makanan</th>
+                        <th class="col-banyak">Banyak</th>
+                        <th class="col-harga">Harga Satuan</th>
+                        <th class="col-jumlah">Jumlah</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="col-no" align="center">1</td>
+                        <td class="col-jenis">
+                            <div id="out-tanggal-tabel">15/03/2026</div>
+                            <div id="out-paket">Paket catering (Lauk + sayur)</div>
+                            <div class="menu-list" id="out-menu-list">
+                                </div>
+                        </td>
+                        <td class="col-banyak" align="center" id="out-banyak">30</td>
+                        <td class="col-harga" align="center" id="out-harga">Rp15.000</td>
+                        <td class="col-jumlah" align="center" id="out-jumlah">Rp450.000</td>
+                    </tr>
+
+                    <tr class="row-total">
+                        <td colspan="2" align="center" style="border-right: none;">Total</td>
+                        <td colspan="2" align="center" style="border-left: none;">(<span id="out-total-banyak">30</span>)</td>
+                        <td align="center" id="out-total-jumlah">Rp450.000</td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="4" align="center">Terbilang</td>
+                        <td align="center" style="font-style: italic;">
+                            (<span id="out-terbilang">Empat Ratus Lima Puluh Ribu Rupiah</span>)
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="total-box-wrapper">
+                <div class="total-box-label">Total:</div>
+                <div class="total-box-skew">
+                    <div class="total-box-content" id="out-box-total">Rp450.000</div>
+                </div>
+            </div>
+
+            <div class="footer-container">
+                <div class="tanda-tangan">
+                    <p>Tangerang Selatan, <span id="out-tanggal-ttd">15 Maret 2026</span></p>
+                    <p>Penerima</p>
+                    <div class="area-ttd">
+                        <img class="watermark-ttd" src="Picture3.png" alt="Watermark Logo">
+                        <img class="img-ttd" src="Picture2.png" alt="Tanda Tangan">
+                    </div>
+                    <p id="out-penerima">(Shella Fitria)</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+        function openModal() {
+            document.getElementById('modalForm').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalForm').classList.remove('active');
+        }
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        }
+
+        function terbilang(angka) {
+            let bilangan = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+            let result = "";
+            angka = Math.abs(angka);
+            
+            if (angka === 0) return ""; 
+            
+            if (angka < 12) { result = " " + bilangan[angka]; } 
+            else if (angka < 20) { result = terbilang(angka - 10) + " Belas"; } 
+            else if (angka < 100) { result = terbilang(Math.floor(angka / 10)) + " Puluh" + terbilang(angka % 10); } 
+            else if (angka < 200) { result = " Seratus" + terbilang(angka - 100); } 
+            else if (angka < 1000) { result = terbilang(Math.floor(angka / 100)) + " Ratus" + terbilang(angka % 100); } 
+            else if (angka < 2000) { result = " Seribu" + terbilang(angka - 1000); } 
+            else if (angka < 1000000) { result = terbilang(Math.floor(angka / 1000)) + " Ribu" + terbilang(angka % 1000); } 
+            else if (angka < 1000000000) { result = terbilang(Math.floor(angka / 1000000)) + " Juta" + terbilang(angka % 1000000); }
+            return result;
+        }
+
+        function updatePreview(event) {
+            const pemesanan = document.getElementById('in-pemesanan').value;
+            const noOrder = document.getElementById('in-no-order').value;
+            const noRekening = document.getElementById('in-no-rek').value;
+            const paket = document.getElementById('in-paket').value;
+            const menuText = document.getElementById('in-menu').value;
+            const banyak = parseInt(document.getElementById('in-banyak').value) || 0;
+            const harga = parseInt(document.getElementById('in-harga').value) || 0;
+            const penerima = document.getElementById('in-penerima').value;
+
+            const inputTanggal = document.getElementById('in-tanggal').value;
+            let tglFile = "";
+
+            if(inputTanggal) {
+                const dateObj = new Date(inputTanggal);
+                const tgl = String(dateObj.getDate()).padStart(2, '0');
+                const blnAngka = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const blnText = namaBulan[dateObj.getMonth()];
+                const thn = dateObj.getFullYear();
+
+                const formatPanjang = `${tgl} ${blnText} ${thn}`;
+                const formatPendek = `${tgl}/${blnAngka}/${thn}`;
+                
+                tglFile = `${dateObj.getDate()}-${dateObj.getMonth() + 1}-${thn}`;
+
+                document.getElementById('out-tanggal-header').innerText = formatPanjang;
+                document.getElementById('out-tanggal-ttd').innerText = formatPanjang;
+                document.getElementById('out-tanggal-tabel').innerText = formatPendek;
+            }
+
+            if (!event || event.target.id !== 'in-nama-file') {
+                const pemesananFile = pemesanan.trim().replace(/\s+/g, '_');
+                const autoFileName = `${pemesananFile}_Catering_${noOrder}_Kwitansi (${tglFile})`;
+                document.getElementById('in-nama-file').value = autoFileName;
+            }
+
+            const jumlah = banyak * harga;
+            const rpFormat = formatRupiah(harga).replace(/\s/g, '');
+            const jumlahFormat = formatRupiah(jumlah).replace(/\s/g, '');
+            
+            let teksTerbilang = "";
+            if (jumlah === 0) {
+                teksTerbilang = "Nol Rupiah";
+            } else {
+                teksTerbilang = terbilang(jumlah).trim().replace(/\s+/g, ' ') + " Rupiah";
+            }
+
+            const menuArray = menuText.split('\n');
+            let listHTML = '';
+            menuArray.forEach(item => {
+                if(item.trim() !== '') { listHTML += `<div>- ${item.trim()}</div>`; }
+            });
+            document.getElementById('out-menu-list').innerHTML = listHTML;
+
+            document.getElementById('out-pemesanan').innerText = pemesanan;
+            document.getElementById('out-no-order').innerText = noOrder;
+            document.getElementById('out-no-rek').innerText = noRekening;
+            document.getElementById('out-paket').innerText = paket;
+            document.getElementById('out-penerima').innerText = penerima;
+
+            document.getElementById('out-banyak').innerText = banyak;
+            document.getElementById('out-total-banyak').innerText = banyak;
+            
+            document.getElementById('out-harga').innerText = rpFormat;
+            document.getElementById('out-jumlah').innerText = jumlahFormat;
+            document.getElementById('out-total-jumlah').innerText = jumlahFormat;
+            document.getElementById('out-box-total').innerText = jumlahFormat;
+            
+            const TitleCaseTerbilang = teksTerbilang.split(' ').map(w => w[0].toUpperCase() + w.substring(1)).join(' ');
+            document.getElementById('out-terbilang').innerText = TitleCaseTerbilang;
+        }
+
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('input', updatePreview);
+        });
+
+        updatePreview();
+
+        // Fungsi Cetak Diperbaiki Untuk Mobile
+        function cetakPDF() {
+            const btn = document.getElementById('btn-cetak');
+            const originalText = btn.innerText;
+            
+            // Animasi Loading Tombol
+            btn.innerText = "Memproses...";
+            btn.disabled = true;
+
+            // Memaksa scroll area preview ke atas/kiri agar tidak terpotong saat diprint
+            window.scrollTo(0,0);
+            document.getElementById('preview-area').scrollTo(0,0);
+
+            const element = document.getElementById('dokumen-kwitansi');
+            let namaFile = document.getElementById('in-nama-file').value.trim();
+            
+            if(namaFile === "") {
+                namaFile = "Kwitansi_Pesanan";
+            }
+            
+            const opt = {
+                margin:       0,
+                filename:     `${namaFile}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    letterRendering: true,
+                    windowWidth: 1024 // Paksa render selebar desktop (mencegah hancur di HP)
+                },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Kembalikan tombol setelah selesai
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }).catch(err => {
+                console.error("Gagal cetak PDF:", err);
+                alert("Terjadi kesalahan saat memproses PDF.");
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
