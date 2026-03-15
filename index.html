@@ -686,7 +686,7 @@ Sambal</textarea>
 
         updatePreview();
 
-        // --- FUNGSI CETAK DIPERBAIKI (ANTI MENCONG & PASTI 1 HALAMAN DI MOBILE) ---
+        // --- FUNGSI CETAK DIKUNCI 1 HALAMAN PRESISI ---
         function cetakPDF() {
             const btn = document.getElementById('btn-cetak');
             const originalText = btn.innerText;
@@ -696,37 +696,35 @@ Sambal</textarea>
 
             const element = document.getElementById('dokumen-kwitansi');
             
-            // Simpan format asli untuk dikembalikan setelah PDF terunduh
+            // Simpan format asli
             const originalCssText = element.style.cssText;
 
-            // 1. Kunci posisi kertas agar mutlak di koordinat 0,0 (Mencegah terpotong layar mobile)
-            // 2. Kunci dimensi tepat ke 210mm x 297mm (Mencegah meluber ke halaman 2)
-            // 3. Matikan bayangan (box-shadow)
+            // KUNCI DIMENSI MURNI DALAM PIXEL (794x1122 adalah rasio aman A4 96dpi)
+            // overflow: hidden; akan memotong bagian bawah yang kosong agar tidak tumpah ke halaman 2
             element.style.cssText = `
                 margin: 0 !important;
                 box-shadow: none !important;
                 position: absolute !important;
                 top: 0 !important;
                 left: 0 !important;
-                width: 210mm !important;
-                height: 297mm !important;
+                width: 794px !important;
+                height: 1122px !important; 
+                max-height: 1122px !important;
+                overflow: hidden !important;
                 transform: none !important;
                 background-color: white !important;
                 z-index: 9999 !important;
             `;
 
-            // Reset scroll halaman agar canvas mulus membaca ujung atas kertas
+            // Reset scroll agar canvas membaca kordinat (0,0) dengan presisi
             window.scrollTo(0,0);
+            document.getElementById('preview-area').scrollTo(0,0);
             
             let namaFile = document.getElementById('in-nama-file').value.trim();
             if(namaFile === "") {
                 namaFile = "Kwitansi_Pesanan";
             }
             
-            // Mengambil dimensi element aslinya yang sudah dikunci secara statis
-            const elementWidth = element.offsetWidth;
-            const elementHeight = element.offsetHeight;
-
             const opt = {
                 margin:       0,
                 filename:     `${namaFile}.pdf`,
@@ -736,23 +734,22 @@ Sambal</textarea>
                     useCORS: true, 
                     scrollX: 0,
                     scrollY: 0,
-                    width: elementWidth,   // Kunci pengambilan selebar elemen A4 murni
-                    height: elementHeight  // Kunci pengambilan setinggi elemen A4 murni
+                    width: 794,   // Paksakan lebar canvas 794px
+                    height: 1122  // Paksakan tinggi canvas 1122px
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Beri jeda 300ms agar browser hp sempat melakukan "re-render" styling baru sebelum capture gambar
+            // Beri jeda 300ms agar browser hp sempat melakukan re-render ukuran
             setTimeout(() => {
                 html2pdf().set(opt).from(element).save().then(() => {
-                    // Kembalikan tampilan seperti semula
+                    // Kembalikan ke tampilan semula
                     element.style.cssText = originalCssText;
                     btn.innerText = originalText;
                     btn.disabled = false;
                 }).catch(err => {
                     console.error("Gagal cetak PDF:", err);
                     alert("Terjadi kesalahan saat memproses PDF.");
-                    
                     element.style.cssText = originalCssText;
                     btn.innerText = originalText;
                     btn.disabled = false;
