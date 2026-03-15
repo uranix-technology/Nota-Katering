@@ -229,7 +229,8 @@
             width: 210mm;
             min-height: 297mm;
             background: white;
-            padding: 15mm 20mm;
+            /* DIUBAH DISINI: Padding kiri & kanan diperkecil menjadi 10mm agar mepet seperti gambar */
+            padding: 15mm 10mm; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             font-family: Arial, Helvetica, sans-serif;
             color: #000;
@@ -352,7 +353,8 @@
         .footer-container {
             display: flex;
             justify-content: flex-end;
-            padding-right: 40px;
+            /* DIUBAH DISINI: Disesuaikan agar TTD tidak ketarik terlalu ke pinggir karena margin mepet */
+            padding-right: 20px; 
         }
 
         .tanda-tangan {
@@ -686,7 +688,6 @@ Sambal</textarea>
 
         updatePreview();
 
-        // --- FUNGSI CETAK DIKUNCI 1 HALAMAN PRESISI ---
         function cetakPDF() {
             const btn = document.getElementById('btn-cetak');
             const originalText = btn.innerText;
@@ -696,11 +697,8 @@ Sambal</textarea>
 
             const element = document.getElementById('dokumen-kwitansi');
             
-            // Simpan format asli
             const originalCssText = element.style.cssText;
 
-            // KUNCI DIMENSI MURNI DALAM PIXEL (794x1122 adalah rasio aman A4 96dpi)
-            // overflow: hidden; akan memotong bagian bawah yang kosong agar tidak tumpah ke halaman 2
             element.style.cssText = `
                 margin: 0 !important;
                 box-shadow: none !important;
@@ -716,7 +714,6 @@ Sambal</textarea>
                 z-index: 9999 !important;
             `;
 
-            // Reset scroll agar canvas membaca kordinat (0,0) dengan presisi
             window.scrollTo(0,0);
             document.getElementById('preview-area').scrollTo(0,0);
             
@@ -734,16 +731,14 @@ Sambal</textarea>
                     useCORS: true, 
                     scrollX: 0,
                     scrollY: 0,
-                    width: 794,   // Paksakan lebar canvas 794px
-                    height: 1122  // Paksakan tinggi canvas 1122px
+                    width: 794,   
+                    height: 1122  
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Beri jeda 300ms agar browser hp sempat melakukan re-render ukuran
             setTimeout(() => {
                 html2pdf().set(opt).from(element).save().then(() => {
-                    // Kembalikan ke tampilan semula
                     element.style.cssText = originalCssText;
                     btn.innerText = originalText;
                     btn.disabled = false;
