@@ -182,6 +182,25 @@
             resize: vertical;
         }
 
+        .btn-add-inline {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-add-inline:hover {
+            background-color: #059669;
+        }
+
         button.btn-selesai {
             width: 100%;
             padding: 14px;
@@ -229,7 +248,6 @@
             width: 210mm;
             min-height: 297mm;
             background: white;
-            /* DIUBAH DISINI: Padding kiri & kanan diperkecil menjadi 10mm agar mepet seperti gambar */
             padding: 15mm 10mm; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             font-family: Arial, Helvetica, sans-serif;
@@ -353,7 +371,6 @@
         .footer-container {
             display: flex;
             justify-content: flex-end;
-            /* DIUBAH DISINI: Disesuaikan agar TTD tidak ketarik terlalu ke pinggir karena margin mepet */
             padding-right: 20px; 
         }
 
@@ -437,7 +454,10 @@
             <!-- KONTAINER DINAMIS DAFTAR MENU -->
             <div id="menu-container">
                 <div class="menu-item-group" data-index="1">
-                    <h3 style="font-size: 1rem; margin-bottom: 10px; color: #1f2937;">Menu 1</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 class="judul-menu" style="font-size: 1rem; margin: 0; color: #1f2937;">Menu 1</h3>
+                        <button type="button" class="btn-add-inline" onclick="tambahMenuForm()">+ Add</button>
+                    </div>
                     <div class="form-group">
                         <label>Nama Paket</label>
                         <input type="text" class="in-paket" value="Paket catering (Lauk + sayur)">
@@ -460,11 +480,6 @@ Sambal</textarea>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- TOMBOL TAMBAH MENU (ADD) -->
-            <div style="margin-bottom: 20px;">
-                <button type="button" onclick="tambahMenuForm()" style="width: 100%; padding: 10px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">+ Tambah Menu Lain</button>
             </div>
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
@@ -608,7 +623,7 @@ Sambal</textarea>
 
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="font-size: 1rem; margin: 0; color: #1f2937;">Menu ${count}</h3>
+                    <h3 class="judul-menu" style="font-size: 1rem; margin: 0; color: #1f2937;">Menu ${count}</h3>
                     <button type="button" onclick="hapusMenuForm(this)" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Hapus</button>
                 </div>
                 <div class="form-group">
@@ -642,7 +657,7 @@ Sambal</textarea>
             const groups = document.querySelectorAll('.menu-item-group');
             groups.forEach((g, idx) => {
                 g.dataset.index = idx + 1;
-                g.querySelector('h3').innerText = `Menu ${idx + 1}`;
+                g.querySelector('.judul-menu').innerText = `Menu ${idx + 1}`;
             });
 
             updatePreview();
