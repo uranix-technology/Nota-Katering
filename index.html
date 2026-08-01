@@ -434,51 +434,37 @@
             
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
             
-            <!-- MENU 1 -->
-            <h3 style="font-size: 1rem; margin-bottom: 10px; color: #1f2937;">Menu 1</h3>
-            <div class="form-group">
-                <label>Nama Paket 1</label>
-                <input type="text" id="in-paket1" value="Paket catering (Lauk + sayur)">
-            </div>
-            <div class="form-group">
-                <label>Isi Menu 1 (Pisahkan baris dengan "Enter")</label>
-                <textarea id="in-menu1" rows="3">Nasi putih
+            <!-- KONTAINER DINAMIS DAFTAR MENU -->
+            <div id="menu-container">
+                <div class="menu-item-group" data-index="1">
+                    <h3 style="font-size: 1rem; margin-bottom: 10px; color: #1f2937;">Menu 1</h3>
+                    <div class="form-group">
+                        <label>Nama Paket</label>
+                        <input type="text" class="in-paket" value="Paket catering (Lauk + sayur)">
+                    </div>
+                    <div class="form-group">
+                        <label>Isi Menu (Pisahkan baris dengan "Enter")</label>
+                        <textarea class="in-menu" rows="3">Nasi putih
 Ayam Geprek
 Lalapan
 Sambal</textarea>
-            </div>
-            <div class="form-group" style="display: flex; gap: 10px;">
-                <div style="flex: 1;">
-                    <label>Banyak 1</label>
-                    <input type="number" id="in-banyak1" value="30" min="0">
-                </div>
-                <div style="flex: 1;">
-                    <label>Harga Satuan 1 (Rp)</label>
-                    <input type="number" id="in-harga1" value="15000" min="0">
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label>Banyak</label>
+                            <input type="number" class="in-banyak" value="30" min="0">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Harga Satuan (Rp)</label>
+                            <input type="number" class="in-harga" value="15000" min="0">
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
-
-            <!-- MENU 2 -->
-            <h3 style="font-size: 1rem; margin-bottom: 10px; color: #1f2937;">Menu 2 (Opsional)</h3>
-            <div class="form-group">
-                <label>Nama Paket 2</label>
-                <input type="text" id="in-paket2" value="">
-            </div>
-            <div class="form-group">
-                <label>Isi Menu 2 (Pisahkan baris dengan "Enter")</label>
-                <textarea id="in-menu2" rows="3"></textarea>
-            </div>
-            <div class="form-group" style="display: flex; gap: 10px;">
-                <div style="flex: 1;">
-                    <label>Banyak 2</label>
-                    <input type="number" id="in-banyak2" value="0" min="0">
-                </div>
-                <div style="flex: 1;">
-                    <label>Harga Satuan 2 (Rp)</label>
-                    <input type="number" id="in-harga2" value="0" min="0">
-                </div>
+            <!-- TOMBOL TAMBAH MENU (ADD) -->
+            <div style="margin-bottom: 20px;">
+                <button type="button" onclick="tambahMenuForm()" style="width: 100%; padding: 10px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">+ Tambah Menu Lain</button>
             </div>
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
@@ -609,23 +595,72 @@ Sambal</textarea>
             return result;
         }
 
+        function tambahMenuForm() {
+            const container = document.getElementById('menu-container');
+            const count = container.querySelectorAll('.menu-item-group').length + 1;
+
+            const div = document.createElement('div');
+            div.className = 'menu-item-group';
+            div.dataset.index = count;
+            div.style.marginTop = "20px";
+            div.style.borderTop = "1px dashed #d1d5db";
+            div.style.paddingTop = "15px";
+
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="font-size: 1rem; margin: 0; color: #1f2937;">Menu ${count}</h3>
+                    <button type="button" onclick="hapusMenuForm(this)" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Hapus</button>
+                </div>
+                <div class="form-group">
+                    <label>Nama Paket</label>
+                    <input type="text" class="in-paket" value="">
+                </div>
+                <div class="form-group">
+                    <label>Isi Menu (Pisahkan baris dengan "Enter")</label>
+                    <textarea class="in-menu" rows="3"></textarea>
+                </div>
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label>Banyak</label>
+                        <input type="number" class="in-banyak" value="0" min="0">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Harga Satuan (Rp)</label>
+                        <input type="number" class="in-harga" value="0" min="0">
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            attachInputListeners();
+            updatePreview();
+        }
+
+        function hapusMenuForm(btn) {
+            btn.closest('.menu-item-group').remove();
+            
+            // Renumbering judul Menu
+            const groups = document.querySelectorAll('.menu-item-group');
+            groups.forEach((g, idx) => {
+                g.dataset.index = idx + 1;
+                g.querySelector('h3').innerText = `Menu ${idx + 1}`;
+            });
+
+            updatePreview();
+        }
+
+        function attachInputListeners() {
+            const inputs = document.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.removeEventListener('input', updatePreview);
+                input.addEventListener('input', updatePreview);
+            });
+        }
+
         function updatePreview(event) {
             const pemesanan = document.getElementById('in-pemesanan').value;
             const noOrder = document.getElementById('in-no-order').value;
             const noRekening = document.getElementById('in-no-rek').value;
             const penerima = document.getElementById('in-penerima').value;
-
-            // Paket 1
-            const paket1 = document.getElementById('in-paket1').value;
-            const menuText1 = document.getElementById('in-menu1').value;
-            const banyak1 = parseInt(document.getElementById('in-banyak1').value) || 0;
-            const harga1 = parseInt(document.getElementById('in-harga1').value) || 0;
-
-            // Paket 2
-            const paket2 = document.getElementById('in-paket2').value;
-            const menuText2 = document.getElementById('in-menu2').value;
-            const banyak2 = parseInt(document.getElementById('in-banyak2').value) || 0;
-            const harga2 = parseInt(document.getElementById('in-harga2').value) || 0;
 
             const inputTanggal = document.getElementById('in-tanggal').value;
             let tglFile = "";
@@ -653,21 +688,26 @@ Sambal</textarea>
                 document.getElementById('in-nama-file').value = autoFileName;
             }
 
-            // Render Item Tabel
+            // Looping semua menu-item-group yang ada di form
             let tbodyHTML = '';
             let totalBanyak = 0;
             let totalJumlah = 0;
             let rowNum = 1;
 
-            // Proses Paket 1
-            if (banyak1 > 0 || paket1.trim() !== '' || menuText1.trim() !== '') {
-                const jumlah1 = banyak1 * harga1;
-                totalBanyak += banyak1;
-                totalJumlah += jumlah1;
+            const menuGroups = document.querySelectorAll('.menu-item-group');
+            menuGroups.forEach(group => {
+                const paket = group.querySelector('.in-paket').value;
+                const menuText = group.querySelector('.in-menu').value;
+                const banyak = parseInt(group.querySelector('.in-banyak').value) || 0;
+                const harga = parseInt(group.querySelector('.in-harga').value) || 0;
 
-                let listHTML1 = '';
-                menuText1.split('\n').forEach(item => {
-                    if(item.trim() !== '') { listHTML1 += `<div>- ${item.trim()}</div>`; }
+                const jumlah = banyak * harga;
+                totalBanyak += banyak;
+                totalJumlah += jumlah;
+
+                let listHTML = '';
+                menuText.split('\n').forEach(item => {
+                    if(item.trim() !== '') { listHTML += `<div>- ${item.trim()}</div>`; }
                 });
 
                 tbodyHTML += `
@@ -675,41 +715,15 @@ Sambal</textarea>
                         <td class="col-no" align="center">${rowNum++}</td>
                         <td class="col-jenis">
                             <div>${window.currentTanggalTabel || ''}</div>
-                            <div>${paket1}</div>
-                            <div class="menu-list">${listHTML1}</div>
+                            <div>${paket}</div>
+                            <div class="menu-list">${listHTML}</div>
                         </td>
-                        <td class="col-banyak" align="center">${banyak1}</td>
-                        <td class="col-harga" align="center">${formatRupiah(harga1).replace(/\s/g, '')}</td>
-                        <td class="col-jumlah" align="center">${formatRupiah(jumlah1).replace(/\s/g, '')}</td>
+                        <td class="col-banyak" align="center">${banyak}</td>
+                        <td class="col-harga" align="center">${formatRupiah(harga).replace(/\s/g, '')}</td>
+                        <td class="col-jumlah" align="center">${formatRupiah(jumlah).replace(/\s/g, '')}</td>
                     </tr>
                 `;
-            }
-
-            // Proses Paket 2
-            if (banyak2 > 0 || paket2.trim() !== '' || menuText2.trim() !== '') {
-                const jumlah2 = banyak2 * harga2;
-                totalBanyak += banyak2;
-                totalJumlah += jumlah2;
-
-                let listHTML2 = '';
-                menuText2.split('\n').forEach(item => {
-                    if(item.trim() !== '') { listHTML2 += `<div>- ${item.trim()}</div>`; }
-                });
-
-                tbodyHTML += `
-                    <tr>
-                        <td class="col-no" align="center">${rowNum++}</td>
-                        <td class="col-jenis">
-                            <div>${window.currentTanggalTabel || ''}</div>
-                            <div>${paket2}</div>
-                            <div class="menu-list">${listHTML2}</div>
-                        </td>
-                        <td class="col-banyak" align="center">${banyak2}</td>
-                        <td class="col-harga" align="center">${formatRupiah(harga2).replace(/\s/g, '')}</td>
-                        <td class="col-jumlah" align="center">${formatRupiah(jumlah2).replace(/\s/g, '')}</td>
-                    </tr>
-                `;
-            }
+            });
 
             const jumlahFormat = formatRupiah(totalJumlah).replace(/\s/g, '');
             
@@ -721,7 +735,6 @@ Sambal</textarea>
             }
             const TitleCaseTerbilang = teksTerbilang.split(' ').map(w => w[0].toUpperCase() + w.substring(1)).join(' ');
 
-            // Tambah baris total & terbilang
             tbodyHTML += `
                 <tr class="row-total">
                     <td colspan="2" align="center" style="border-right: none;">Total</td>
@@ -744,11 +757,7 @@ Sambal</textarea>
             document.getElementById('out-box-total').innerText = jumlahFormat;
         }
 
-        const inputs = document.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            input.addEventListener('input', updatePreview);
-        });
-
+        attachInputListeners();
         updatePreview();
 
         function cetakPDF() {
