@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cetak Kwitansi Dapoer Mama Sella</title>
+    <!-- Tambahan Font Nunito agar sesuai tema modern/bold -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* Reset Dasar */
@@ -12,7 +14,8 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Mengubah font bawaan ke Nunito */
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #52525b; 
             margin: 0;
             padding-bottom: 80px; 
@@ -43,7 +46,7 @@
             border: none;
             border-radius: 8px;
             font-size: 1.05rem;
-            font-weight: bold;
+            font-weight: 800;
             cursor: pointer;
             flex: 1;
             max-width: 250px;
@@ -53,6 +56,7 @@
             justify-content: center;
             align-items: center;
             gap: 8px;
+            font-family: inherit;
         }
 
         .action-btn:active {
@@ -80,7 +84,7 @@
         .btn-unduh:hover:not(:disabled) { background-color: #15803d; }
 
         /* ========================================= */
-        /* MODAL POP-UP FORM                         */
+        /* MODAL POP-UP FORM (TEMA KPCAMP LITE)      */
         /* ========================================= */
         .modal-overlay {
             position: fixed;
@@ -88,13 +92,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(17, 24, 39, 0.7);
             display: none; 
             justify-content: center;
             align-items: center;
             z-index: 100;
             padding: 15px;
-            backdrop-filter: blur(3px);
+            backdrop-filter: blur(4px);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -107,94 +111,180 @@
         .form-container {
             position: relative; 
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             max-height: 90vh; 
             background: #ffffff;
-            padding: 25px 20px;
-            overflow-y: auto;
+            border: 2px solid #1f2937; /* Border tegas sesuai tema */
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             transform: translateY(-20px);
             transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        .modal-overlay.active .form-container {
-            transform: translateY(0);
+        /* Header Form Tema Kebiruan */
+        .form-header {
+            background-color: #eef2ff;
+            border-bottom: 2px solid #1f2937;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-header span {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #111827;
         }
 
         .btn-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
             background: none;
             border: none;
             font-size: 1.8rem;
             line-height: 1;
-            color: #6b7280;
+            color: #4b5563;
             cursor: pointer;
             transition: color 0.2s;
+            padding: 0;
         }
 
         .btn-close:hover {
             color: #ef4444; 
         }
 
-        .form-container h2 {
-            font-size: 1.3rem;
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: #111827;
-            text-align: center;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 15px;
-            padding-right: 30px; 
-            padding-left: 30px;
+        /* Body Form scrollable */
+        .form-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 6px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #374151;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 800; /* Bold label */
+            color: #111827;
         }
 
         .form-group input, .form-group textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 16px; 
-            transition: border-color 0.3s;
+            padding: 12px 15px; /* Padding lebih besar */
+            border: 2px solid #1f2937; /* Border tegas */
+            border-radius: 8px;
+            font-size: 1rem; 
+            font-family: inherit;
+            font-weight: 600;
+            color: #1f2937;
+            background-color: #ffffff;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
         .form-group input:focus, .form-group textarea:focus {
             outline: none;
             border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Styling saat input di-disable (greyout) */
+        .form-group input:disabled {
+            background-color: #e5e7eb;
+            color: #6b7280;
+            border-color: #d1d5db;
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
         .form-group textarea {
             resize: vertical;
         }
 
+        /* ========================================= */
+        /* TOGGLE SWITCH STYLE                       */
+        /* ========================================= */
+        .pembayaran-header {
+            display: flex;
+            justify-content: flex-start; /* Bersebelahan persis di kiri */
+            align-items: center;
+            gap: 15px; /* Jarak antara teks Pembayaran dan Toggle */
+            margin-bottom: 8px;
+        }
+        .pembayaran-header > label {
+            margin-bottom: 0 !important;
+        }
+        .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #fb923c; /* Oren muda untuk mode No Rekening */
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #10b981; /* Hijau untuk mode Cash */
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        #toggle-label-text {
+            color: #fb923c; /* Teks bawaan oren muda */
+            transition: color 0.4s;
+            font-size: 0.95rem;
+        }
+
         .btn-add-inline {
             background-color: #10b981;
             color: white;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
+            border: 2px solid #1f2937; /* Border pada tombol */
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 800;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 4px;
             transition: background-color 0.2s;
+            font-family: inherit;
         }
 
         .btn-add-inline:hover {
@@ -203,16 +293,17 @@
 
         button.btn-selesai {
             width: 100%;
-            padding: 14px;
-            background-color: #4b5563; 
+            padding: 15px;
+            background-color: #1f2937; /* Tombol tegas */
             color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1.05rem;
-            font-weight: bold;
+            border: 2px solid #1f2937;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 800;
             cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 15px;
+            transition: background 0.3s, color 0.3s;
+            margin-top: 20px;
+            font-family: inherit;
         }
 
         button.btn-selesai:hover {
@@ -428,75 +519,91 @@
 
     <div class="modal-overlay" id="modalForm">
         <div class="form-container">
-            <button class="btn-close" onclick="closeModal()">&times;</button>
-            
-            <h2>Data Kwitansi</h2>
-            
-            <div class="form-group">
-                <label>Pemesanan</label>
-                <input type="text" id="in-pemesanan" value="Yayasan Al Kahfi">
-            </div>
-            <div class="form-group">
-                <label>No Order</label>
-                <input type="text" id="in-no-order" value="117">
-            </div>
-            <div class="form-group">
-                <label>Pilih Tanggal</label>
-                <input type="date" id="in-tanggal" value="2026-03-15">
-            </div>
-            <div class="form-group">
-                <label>No. Rekening</label>
-                <input type="text" id="in-no-rek" value="4731702980">
+            <!-- Header Baru -->
+            <div class="form-header">
+                <span>Data Kwitansi</span>
+                <button class="btn-close" onclick="closeModal()">&times;</button>
             </div>
             
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
-            
-            <!-- KONTAINER DINAMIS DAFTAR MENU -->
-            <div id="menu-container">
-                <div class="menu-item-group" data-index="1">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <h3 class="judul-menu" style="font-size: 1rem; margin: 0; color: #1f2937;">Menu 1</h3>
-                        <button type="button" class="btn-add-inline" onclick="tambahMenuForm()">+ Add</button>
+            <!-- Body Form -->
+            <div class="form-body">
+                <div class="form-group">
+                    <label>Pemesanan</label>
+                    <input type="text" id="in-pemesanan" value="Yayasan Al Kahfi">
+                </div>
+                <div class="form-group">
+                    <label>No Order</label>
+                    <input type="text" id="in-no-order" value="117">
+                </div>
+                <div class="form-group">
+                    <label>Pilih Tanggal</label>
+                    <input type="date" id="in-tanggal">
+                </div>
+                
+                <!-- Field Pembayaran dengan Toggle (Disebelah persis) -->
+                <div class="form-group">
+                    <div class="pembayaran-header">
+                        <label>Pembayaran</label>
+                        <div class="toggle-wrapper">
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-pembayaran" onchange="handlePembayaranToggle()">
+                                <span class="slider"></span>
+                            </label>
+                            <span id="toggle-label-text">No Rekening</span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Nama Paket</label>
-                        <input type="text" class="in-paket" value="Paket catering (Lauk + sayur)">
-                    </div>
-                    <div class="form-group">
-                        <label>Isi Menu (Pisahkan baris dengan "Enter")</label>
-                        <textarea class="in-menu" rows="3">Nasi putih
+                    <input type="text" id="in-no-rek" value="4731702980">
+                </div>
+                
+                <hr style="margin: 20px 0; border: 0; border-top: 2px dashed #d1d5db;">
+                
+                <!-- KONTAINER DINAMIS DAFTAR MENU -->
+                <div id="menu-container">
+                    <div class="menu-item-group" data-index="1">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 class="judul-menu" style="font-size: 1.1rem; font-weight: 800; margin: 0; color: #1f2937;">Menu 1</h3>
+                            <button type="button" class="btn-add-inline" onclick="tambahMenuForm()">+ Add</button>
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Paket</label>
+                            <input type="text" class="in-paket" value="Paket catering (Lauk + sayur)">
+                        </div>
+                        <div class="form-group">
+                            <label>Isi Menu (Pisahkan baris dengan "Enter")</label>
+                            <textarea class="in-menu" rows="3">Nasi putih
 Ayam Geprek
 Lalapan
 Sambal</textarea>
-                    </div>
-                    <div class="form-group" style="display: flex; gap: 10px;">
-                        <div style="flex: 1;">
-                            <label>Banyak</label>
-                            <input type="number" class="in-banyak" value="30" min="0">
                         </div>
-                        <div style="flex: 1;">
-                            <label>Harga Satuan (Rp)</label>
-                            <input type="number" class="in-harga" value="15000" min="0">
+                        <div class="form-group" style="display: flex; gap: 15px;">
+                            <div style="flex: 1;">
+                                <label>Banyak</label>
+                                <input type="number" class="in-banyak" value="30" min="0">
+                            </div>
+                            <div style="flex: 1;">
+                                <label>Harga Satuan (Rp)</label>
+                                <input type="number" class="in-harga" value="15000" min="0">
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 2px dashed #d1d5db;">
+
+                <div class="form-group">
+                    <label>Nama Penerima</label>
+                    <input type="text" id="in-penerima" value="(Shella Fitria)">
+                </div>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 2px dashed #d1d5db;">
+
+                <div class="form-group">
+                    <label>Nama File PDF (Otomatis & Bisa Diedit)</label>
+                    <input type="text" id="in-nama-file">
+                </div>
+
+                <button class="btn-selesai" onclick="closeModal()">Selesai</button>
             </div>
-
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
-
-            <div class="form-group">
-                <label>Nama Penerima</label>
-                <input type="text" id="in-penerima" value="(Shella Fitria)">
-            </div>
-
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
-
-            <div class="form-group">
-                <label>Nama File PDF (Otomatis & Bisa Diedit)</label>
-                <input type="text" id="in-nama-file">
-            </div>
-
-            <button class="btn-selesai" onclick="closeModal()">Selesai</button>
         </div>
     </div>
 
@@ -517,7 +624,7 @@ Sambal</textarea>
                     Jl. Oscar 3, Bambu Apus,<br>
                     Kec. Pamulang<br>
                     Telp/hp: 0899-8337-276<br>
-                    No. Rekening <span id="out-no-rek">4731702980</span>
+                    <span id="label-out-rek">No. Rekening</span> <span id="out-no-rek">4731702980</span>
                 </div>
 
                 <div class="header-info">
@@ -532,7 +639,7 @@ Sambal</textarea>
                         </tr>
                         <tr>
                             <td class="label">Tanggal</td>
-                            <td>: <span id="out-tanggal-header">15 Maret 2026</span></td>
+                            <td>: <span id="out-tanggal-header"></span></td>
                         </tr>
                     </table>
                 </div>
@@ -564,7 +671,7 @@ Sambal</textarea>
 
             <div class="footer-container">
                 <div class="tanda-tangan">
-                    <p>Tangerang Selatan, <span id="out-tanggal-ttd">15 Maret 2026</span></p>
+                    <p>Tangerang Selatan, <span id="out-tanggal-ttd"></span></p>
                     <p>Penerima</p>
                     <div class="area-ttd">
                         <img class="watermark-ttd" src="Picture3.png" alt="Watermark Logo">
@@ -618,13 +725,13 @@ Sambal</textarea>
             div.className = 'menu-item-group';
             div.dataset.index = count;
             div.style.marginTop = "20px";
-            div.style.borderTop = "1px dashed #d1d5db";
+            div.style.borderTop = "2px dashed #d1d5db";
             div.style.paddingTop = "15px";
 
             div.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 class="judul-menu" style="font-size: 1rem; margin: 0; color: #1f2937;">Menu ${count}</h3>
-                    <button type="button" onclick="hapusMenuForm(this)" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Hapus</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 class="judul-menu" style="font-size: 1.1rem; font-weight: 800; margin: 0; color: #1f2937;">Menu ${count}</h3>
+                    <button type="button" onclick="hapusMenuForm(this)" style="background: #ef4444; color: white; border: 2px solid #1f2937; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; font-family: inherit; cursor: pointer;">Hapus</button>
                 </div>
                 <div class="form-group">
                     <label>Nama Paket</label>
@@ -634,7 +741,7 @@ Sambal</textarea>
                     <label>Isi Menu (Pisahkan baris dengan "Enter")</label>
                     <textarea class="in-menu" rows="3"></textarea>
                 </div>
-                <div class="form-group" style="display: flex; gap: 10px;">
+                <div class="form-group" style="display: flex; gap: 15px;">
                     <div style="flex: 1;">
                         <label>Banyak</label>
                         <input type="number" class="in-banyak" value="0" min="0">
@@ -663,8 +770,29 @@ Sambal</textarea>
             updatePreview();
         }
 
+        function handlePembayaranToggle() {
+            const toggle = document.getElementById('toggle-pembayaran');
+            const inputRek = document.getElementById('in-no-rek');
+            const labelText = document.getElementById('toggle-label-text');
+            
+            if (toggle.checked) {
+                // Mode Cash
+                inputRek.value = "Cash";
+                inputRek.disabled = true;
+                labelText.innerText = "Cash";
+                labelText.style.color = "#10b981"; // Hijau
+            } else {
+                // Mode No Rekening
+                inputRek.value = "4731702980";
+                inputRek.disabled = false;
+                labelText.innerText = "No Rekening";
+                labelText.style.color = "#fb923c"; // Oren muda
+            }
+            updatePreview(); // Update cetakan PDF
+        }
+
         function attachInputListeners() {
-            const inputs = document.querySelectorAll('input, textarea');
+            const inputs = document.querySelectorAll('input:not(#toggle-pembayaran), textarea');
             inputs.forEach(input => {
                 input.removeEventListener('input', updatePreview);
                 input.addEventListener('input', updatePreview);
@@ -701,6 +829,14 @@ Sambal</textarea>
                 const pemesananFile = pemesanan.trim().replace(/\s+/g, '_');
                 const autoFileName = `${pemesananFile}_Catering_${noOrder}_Kwitansi (${tglFile})`;
                 document.getElementById('in-nama-file').value = autoFileName;
+            }
+
+            // Ganti Label PDF jika Cash / No Rekening
+            const isCash = document.getElementById('toggle-pembayaran').checked;
+            if (isCash) {
+                document.getElementById('label-out-rek').innerText = "Pembayaran :";
+            } else {
+                document.getElementById('label-out-rek').innerText = "No. Rekening";
             }
 
             // Looping semua menu-item-group yang ada di form
@@ -771,6 +907,13 @@ Sambal</textarea>
             document.getElementById('out-penerima').innerText = penerima;
             document.getElementById('out-box-total').innerText = jumlahFormat;
         }
+
+        // Set tanggal otomatis ke hari ini saat web pertama kali di-load
+        const hariIni = new Date();
+        const yyyy = hariIni.getFullYear();
+        const mm = String(hariIni.getMonth() + 1).padStart(2, '0');
+        const dd = String(hariIni.getDate()).padStart(2, '0');
+        document.getElementById('in-tanggal').value = `${yyyy}-${mm}-${dd}`;
 
         attachInputListeners();
         updatePreview();
